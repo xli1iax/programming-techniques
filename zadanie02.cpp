@@ -1,5 +1,5 @@
 /*
-Meno a priezvisko:
+Meno a priezvisko: Lilia Zhuravel
 
 POKYNY:
 (1)  Implementujte funkcie tak, aby splnali popis pri ich deklaraciach.
@@ -19,6 +19,8 @@ POKYNY:
 
 
 #include <iostream>
+#include <vector>
+
 
 using namespace std;
 
@@ -70,6 +72,20 @@ struct ListData {
 
 void appendNode(List *list, const int val) {
     // TODO
+    Node *newNode = new Node;
+    newNode->data = val;
+    newNode->next = nullptr;
+    if (list->first == nullptr) {
+        list->first = newNode;
+        return;
+    }
+
+    Node *last = list->first;
+    while (last->next != nullptr) {
+        last = last->next;
+    }
+
+    last->next = newNode;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -118,7 +134,30 @@ void appendNode(List *list, const int val) {
 
 List *createList(const ListData *listData) {
     // TODO
-    return nullptr; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+        List* list = new List{};
+        list->first = nullptr;
+
+        if (listData->len == 0) {
+            return list;
+        }
+
+        Node* tail = nullptr;
+
+        for (std::size_t i = 0; i < listData->len; ++i) {
+            Node* node = new Node{};
+            node->data = listData->data[i];
+            node->next = nullptr;
+
+            if (list->first == nullptr) {
+                list->first = node;
+                tail = node;
+            } else {
+                tail->next = node;
+                tail = node;
+            }
+        }
+
+        return list;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -154,8 +193,27 @@ List *createList(const ListData *listData) {
         (5, 5, 14, 82, 82, 100), 5 ---> (5, 5, 5, 14, 82, 82, 100)
 */
 
-void insertNode(List *sortedList, const int val) {
-    // TODO
+void insertNode(List* sortedList, const int val) {
+    Node* last = sortedList->first;
+
+    if (last == nullptr || val <= last->data) {
+        Node* node = new Node{};
+        node->data = val;
+        node->next = last;
+        sortedList->first = node;
+        return;
+    }
+
+    Node* prev = nullptr;
+    while (last != nullptr && last->data < val) {
+        prev = last;
+        last = last->next;
+    }
+
+    Node* node = new Node{};
+    node->data = val;
+    node->next = last;
+    prev->next = node;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -192,7 +250,30 @@ void insertNode(List *sortedList, const int val) {
 
 List *joinLists(List *list1, List *list2) {
     // TODO
-    return nullptr; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+    List *newList = new List{};
+    if (list1->first == nullptr && list2->first == nullptr) {
+        return newList;
+    }
+    if (list1->first == nullptr) {
+        newList->first = list2->first;
+        return newList;
+    }
+    if (list2->first == nullptr) {
+        newList->first = list1->first;
+        return newList;
+    }
+
+    newList->first = list1->first;
+    Node *first = list1->first;
+
+     while (first != nullptr) {
+         if (first->next == nullptr) {
+             first->next = list2->first;
+             return newList;
+         }
+         first = first->next;
+     }
+    return newList;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -221,6 +302,27 @@ List *joinLists(List *list1, List *list2) {
 
 void removeLastNode(List *list) {
     // TODO
+    if (list->first == nullptr) {
+        return;
+    }
+
+    if (list->first->next == nullptr) {
+        delete list->first;
+        list->first = nullptr;
+        return;
+    }
+
+    Node *last = list->first;
+    Node *prev = nullptr;
+    while (last != nullptr) {
+        if (last->next == nullptr) {
+            delete last;
+            prev->next = nullptr;
+            return;
+        }
+        prev = last;
+        last = last->next;
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -258,7 +360,21 @@ void removeLastNode(List *list) {
 
 bool isPalindrome(const List *list) {
     // TODO
-    return false; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+    vector<int> datas;
+    int i = 0;
+    Node *first = list->first;
+    while (first != nullptr) {
+        datas.push_back(first->data);
+        i++;
+        first = first->next;
+    }
+
+    for (int j = 0; j < i / 2; ++j) {
+        if (datas[j] != datas[i - j - 1]) {
+            return false;
+        }
+    }
+    return true; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -290,7 +406,17 @@ bool isPalindrome(const List *list) {
 
 int sumNodes(const List *list, const size_t n) {
     // TODO
-    return -1; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+    int sum = 0;
+    Node *first = list->first;
+    for (size_t i = 0; i < n; ++i) {
+        if (first != nullptr) {
+            sum += first->data;
+        } else {
+            break;
+        }
+        first = first->next;
+    }
+    return sum; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -327,7 +453,18 @@ int sumNodes(const List *list, const size_t n) {
 
 bool contains(const List *list1, const List *list2) {
     // TODO
-    return false; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+
+    if (!list2 || list2->first == nullptr) return true;
+    if (!list1 || list1->first == nullptr) return false;
+
+    for (Node* b = list2->first; b != nullptr; b = b->next) {
+        bool found = false;
+        for (Node* a = list1->first; a != nullptr; a = a->next) {
+            if (a->data == b->data) { found = true; break; }
+        }
+        if (!found) return false;
+    }
+    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -361,7 +498,27 @@ bool contains(const List *list1, const List *list2) {
 
 List *deepCopyList(const List *list) {
     // TODO
-    return nullptr; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+    List *newList = new List{};
+    if (list->first == nullptr) {
+        return newList;
+    }
+    Node *src = list->first;
+    Node *newNode = new Node{};
+    newNode->data = src->data;
+    newNode->next = nullptr;
+    newList->first = newNode;
+
+    Node *first = src->next;
+    Node *last = newNode;
+    while (first != nullptr) {
+        Node *node = new Node{};
+        last->next = node;
+        node->data = first->data;
+        node->next = nullptr;
+        last = node;
+        first = first->next;
+    }
+    return newList; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -392,7 +549,15 @@ List *deepCopyList(const List *list) {
 
 Node *findLastNodeOccurrence(const List *list, const int val) {
     // TODO
-    return nullptr; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
+    Node *first = list->first;
+    Node *savedNode = nullptr;
+    while (first != nullptr) {
+        if (first->data == val) {
+            savedNode = first;
+        }
+        first = first->next;
+    }
+    return savedNode; // tento riadok zmente podla zadania, je tu len kvoli kompilacii
 }
 
 //-------------------------------------------------------------------------------------------------
